@@ -1,9 +1,9 @@
-const CACHE_NAME = 'question-cards-v2';
+const CACHE_NAME = 'question-cards-v3';
 const ASSETS = [
   './',
   './index.html',
-  './styles.css',
-  './script.js',
+  './styles.css?v=3',
+  './script.js?v=3',
   './manifest.json'
 ];
 

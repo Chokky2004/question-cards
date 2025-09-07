@@ -484,3 +484,10 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   });
 }
+
+// ถ้ามี Service Worker ใหม่เข้าควบคุม ให้รีโหลดหน้าเพื่อให้ได้ไฟล์ล่าสุด
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    window.location.reload();
+  });
+}
