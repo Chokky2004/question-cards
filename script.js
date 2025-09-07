@@ -1,5 +1,5 @@
 // สลับโหมด: ตั้งเป็น false เพื่อปิด interactive (ลาก/เอียง/พลิก)
-const INTERACTIVE = true;
+const INTERACTIVE = false;
 
 // Theme handling
 const Theme = {
@@ -128,13 +128,14 @@ function shuffle(array) {
 
 function updateCounter() {
   counterEl.textContent = `เหลือ ${deck.length}/30`;
-  deckCountEl.textContent = `${deck.length}`;
+  if (deckCountEl) deckCountEl.textContent = `${deck.length}`;
   drawBtn.disabled = deck.length === 0;
   undoBtn.disabled = undoStack.length === 0;
   redoBtn.disabled = redoStack.length === 0;
 }
 
 function buildDeckVisual(count) {
+  if (!deckEl) return;
   deckEl.innerHTML = '';
   const layers = Math.min(count, 12); // จำกัดจำนวนเลเยอร์ที่มองเห็นเพื่อความเบา
   for (let i = 0; i < layers; i++) {

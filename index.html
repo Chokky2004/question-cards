@@ -24,18 +24,7 @@
         </div>
       </header>
 
-      <section class="board" aria-label="โต๊ะไพ่">
-        <div class="zone">
-          <div class="deck" id="deck" aria-label="สำรับไพ่" role="button" tabindex="0"></div>
-          <div class="deck-count" id="deckCount">30</div>
-        </div>
-        <div class="zone">
-          <div class="table" id="table" aria-live="polite" aria-label="พื้นที่วางไพ่"></div>
-        </div>
-        <div class="zone">
-          <div class="discard" id="discard" aria-label="กองทิ้ง (ไม่ใช้)"></div>
-        </div>
-      </section>
+      <section aria-label="พื้นที่แสดงไพ่" class="table" id="table" aria-live="polite"></section>
 
       <section class="controls">
         <button id="drawBtn" class="btn primary">หยิบไพ่คำถาม</button>
