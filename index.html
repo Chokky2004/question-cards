@@ -4,16 +4,24 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>สุ่มไพ่คำถาม (30 ข้อ)</title>
+    <meta name="theme-color" content="#0f172a" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="manifest" href="manifest.json" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <main class="container">
+    <main class="container" id="appRoot">
       <header class="header">
         <h1>สุ่มไพ่คำถาม</h1>
         <p class="subtitle">รวม 30 ข้อ • สุ่มใหม่ทุกครั้งที่หยิบออก</p>
+        <div class="toolbar">
+          <button id="undoBtn" class="btn" title="ย้อนกลับ (Undo)">Undo</button>
+          <button id="redoBtn" class="btn" title="ทำซ้ำ (Redo)">Redo</button>
+          <button id="editBtn" class="btn" title="แก้ไขชุดคำถาม">แก้ไขคำถาม</button>
+          <button id="themeBtn" class="btn" title="สลับธีม">โหมดสว่าง/มืด</button>
+        </div>
       </header>
 
       <section class="board" aria-label="โต๊ะไพ่">
@@ -35,9 +43,27 @@
         <div class="counter" id="counter">เหลือ 30/30</div>
       </section>
 
-      <footer class="footer">
-        <small>หมายเหตุ: เมื่อหยิบไพ่แต่ละใบ ระบบจะสลับลำดับไพ่ที่เหลือโดยอัตโนมัติ • เคล็ดลับ: กด Space เพื่อหยิบไพ่</small>
-      </footer>
+      <section class="history" aria-label="ประวัติไพ่ที่หยิบ">
+        <h2 class="h-title">ประวัติ</h2>
+        <div id="historyList" class="history-list"></div>
+      </section>
+
+      <section id="editorPanel" class="editor hidden" aria-label="ตัวแก้ไขชุดคำถาม">
+        <div class="editor-head">
+          <h2 class="h-title">แก้ไขชุดคำถาม</h2>
+          <div class="editor-actions">
+            <input type="file" id="fileInput" accept=".json,.csv,text/csv,application/json" class="file-input" />
+            <button id="loadFromText" class="btn">บันทึกจากข้อความ</button>
+            <button id="exportJson" class="btn">ส่งออก JSON</button>
+            <button id="exportCsv" class="btn">ส่งออก CSV</button>
+            <button id="closeEditor" class="btn">ปิด</button>
+          </div>
+        </div>
+        <p class="muted">รูปแบบที่รองรับ: JSON อาร์เรย์ของสตริง หรือ CSV หนึ่งคำถามต่อบรรทัด</p>
+        <textarea id="editorTextarea" rows="10" placeholder='["คำถาม 1", "คำถาม 2", ...] หรือ CSV: หนึ่งคำถามต่อบรรทัด'></textarea>
+      </section>
+
+      
     </main>
 
     <script src="script.js"></script>

@@ -30,6 +30,14 @@ body {
 .header h1 { margin: 8px 0 4px; font-weight: 700; letter-spacing: .5px; }
 .subtitle { margin: 0; color: var(--muted); }
 
+.toolbar {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
 .controls {
   display: flex;
   gap: 12px;
@@ -225,4 +233,40 @@ body {
   padding: 22px 22px 26px;
   display: grid;
   align-items: center;
+}
+
+/* History panel */
+.history { border-top: 1px solid #1f2a44; padding-top: 10px; }
+.h-title { margin: 6px 0 10px; font-size: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; }
+.history-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 8px; }
+.history-item { background: #0b1220; border: 1px solid #1f2a44; border-radius: 10px; padding: 10px; font-size: 13px; color: var(--text); }
+.muted { color: var(--muted); font-size: 12px; }
+
+/* Editor */
+.editor { border: 1px solid #1f2a44; border-radius: 12px; padding: 12px; background: #0b1220; }
+.editor.hidden { display: none; }
+.editor-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.editor-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.file-input { color: var(--muted); }
+textarea#editorTextarea { width: 100%; resize: vertical; background: #0b1422; color: var(--text); border: 1px solid #1f2a44; border-radius: 8px; padding: 10px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+/* Light theme support */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #f8fafc;
+    --panel: #ffffff;
+    --card: #f1f5f9;
+    --text: #0f172a;
+    --muted: #475569;
+    --shadow: rgba(0,0,0,.15);
+  }
+}
+
+:root[data-theme="light"] {
+  --bg: #f8fafc;
+  --panel: #ffffff;
+  --card: #f1f5f9;
+  --text: #0f172a;
+  --muted: #475569;
+  --shadow: rgba(0,0,0,.15);
 }

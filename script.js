@@ -1,6 +1,28 @@
 // สลับโหมด: ตั้งเป็น false เพื่อปิด interactive (ลาก/เอียง/พลิก)
 const INTERACTIVE = false;
 
+// Theme handling
+const Theme = {
+  get() {
+    const forced = localStorage.getItem('theme');
+    if (forced === 'light' || forced === 'dark') return forced;
+    return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  },
+  set(mode) {
+    if (mode) localStorage.setItem('theme', mode);
+    applyTheme();
+  },
+  toggle() {
+    const cur = Theme.get();
+    Theme.set(cur === 'light' ? 'dark' : 'light');
+  }
+};
+
+function applyTheme() {
+  const mode = Theme.get();
+  document.documentElement.setAttribute('data-theme', mode);
+}
+
 // รายการคำถามทั้งหมด 30 ข้อ (ภาษาไทย)
 const QUESTIONS = [
   'แนะนำตัวเองสั้น ๆ และสิ่งที่กำลังสนใจอยู่ตอนนี้',
@@ -36,7 +58,46 @@ const QUESTIONS = [
 ];
 
 let deck = [];
+let drawn = [];
 let zIndexTop = 10;
+
+// Undo/Redo stacks (snapshot-based)
+const undoStack = [];
+const redoStack = [];
+
+function snapshot() {
+  return { deck: [...deck], drawn: [...drawn] };
+}
+function restore(snap) {
+  deck = [...snap.deck];
+  drawn = [...snap.drawn];
+  updateCounter();
+  buildDeckVisual(deck.length);
+  renderHistory();
+  renderTableCurrent();
+  saveState();
+}
+
+function pushUndo() {
+  undoStack.push(snapshot());
+  // Limit history size
+  if (undoStack.length > 100) undoStack.shift();
+}
+function clearRedo() { redoStack.length = 0; }
+function doUndo() {
+  if (undoStack.length === 0) return;
+  const current = snapshot();
+  const prev = undoStack.pop();
+  redoStack.push(current);
+  restore(prev);
+}
+function doRedo() {
+  if (redoStack.length === 0) return;
+  const current = snapshot();
+  const next = redoStack.pop();
+  undoStack.push(current);
+  restore(next);
+}
 
 const deckEl = document.getElementById('deck');
 const tableEl = document.getElementById('table');
@@ -44,6 +105,18 @@ const drawBtn = document.getElementById('drawBtn');
 const resetBtn = document.getElementById('resetBtn');
 const counterEl = document.getElementById('counter');
 const deckCountEl = document.getElementById('deckCount');
+const undoBtn = document.getElementById('undoBtn');
+const redoBtn = document.getElementById('redoBtn');
+const historyListEl = document.getElementById('historyList');
+const editBtn = document.getElementById('editBtn');
+const editorPanel = document.getElementById('editorPanel');
+const editorTextarea = document.getElementById('editorTextarea');
+const loadFromTextBtn = document.getElementById('loadFromText');
+const exportJsonBtn = document.getElementById('exportJson');
+const exportCsvBtn = document.getElementById('exportCsv');
+const fileInput = document.getElementById('fileInput');
+const closeEditorBtn = document.getElementById('closeEditor');
+const themeBtn = document.getElementById('themeBtn');
 
 function shuffle(array) {
   for (let i = array.length - 1; i > 0; i--) {
@@ -57,6 +130,8 @@ function updateCounter() {
   counterEl.textContent = `เหลือ ${deck.length}/30`;
   deckCountEl.textContent = `${deck.length}`;
   drawBtn.disabled = deck.length === 0;
+  undoBtn.disabled = undoStack.length === 0;
+  redoBtn.disabled = redoStack.length === 0;
 }
 
 function buildDeckVisual(count) {
@@ -70,6 +145,54 @@ function buildDeckVisual(count) {
     card.style.zIndex = String(i + 1);
     deckEl.appendChild(card);
   }
+}
+
+function renderHistory() {
+  historyListEl.innerHTML = '';
+  // แสดงล่าสุดก่อน
+  [...drawn].reverse().forEach((q, i) => {
+    const div = document.createElement('div');
+    div.className = 'history-item';
+    div.textContent = q;
+    historyListEl.appendChild(div);
+  });
+}
+
+function renderTableCurrent() {
+  if (!INTERACTIVE) {
+    tableEl.innerHTML = '';
+    const last = drawn[drawn.length - 1];
+    if (last) {
+      const simple = document.createElement('div');
+      simple.className = 'simple-card';
+      simple.innerHTML = `<div class="question">${last}</div>`;
+      tableEl.appendChild(simple);
+    }
+    return;
+  }
+  // ในโหมด interactive ไม่บังคับเรนเดอร์ย้อนหลัง (ผู้ใช้ลากไพ่เอง)
+}
+
+// Storage
+const STORAGE_KEY = 'question-cards-state-v1';
+function saveState() {
+  const data = { deck, drawn };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    if (!Array.isArray(data.deck) || !Array.isArray(data.drawn)) return false;
+    deck = data.deck;
+    drawn = data.drawn;
+    updateCounter();
+    buildDeckVisual(deck.length);
+    renderHistory();
+    renderTableCurrent();
+    return true;
+  } catch { return false; }
 }
 
 function createCardElement(text) {
@@ -215,23 +338,20 @@ async function drawCard() {
   if (deck.length === 0) return;
 
   // สุ่มหยิบ 1 ใบจากข้อมูล
+  pushUndo();
+  clearRedo();
   const idx = Math.floor(Math.random() * deck.length);
   const [picked] = deck.splice(idx, 1);
+  drawn.push(picked);
 
   // สลับไพ่ที่เหลือ
   shuffle(deck);
   updateCounter();
   buildDeckVisual(deck.length);
+  renderHistory();
+  saveState();
 
-  if (!INTERACTIVE) {
-    // โหมดเรียบง่าย: แสดงการ์ดแบบนิ่งบนโต๊ะ
-    tableEl.innerHTML = '';
-    const simple = document.createElement('div');
-    simple.className = 'simple-card';
-    simple.innerHTML = `<div class="question">${picked}</div>`;
-    tableEl.appendChild(simple);
-    return;
-  }
+  if (!INTERACTIVE) { renderTableCurrent(); return; }
 
   // โหมด interactive: สร้างการ์ด, บินจากสำรับ ไปที่โต๊ะ แล้วพลิก
   const card = createCardElement(picked);
@@ -253,15 +373,22 @@ async function drawCard() {
 
 function resetDeck() {
   deck = shuffle([...QUESTIONS]);
+  drawn = [];
+  undoStack.length = 0;
+  redoStack.length = 0;
   updateCounter();
   buildDeckVisual(deck.length);
   tableEl.innerHTML = '';
   drawBtn.disabled = false;
+  renderHistory();
+  saveState();
 }
 
 // events
 drawBtn.addEventListener('click', drawCard);
 resetBtn.addEventListener('click', resetDeck);
+undoBtn.addEventListener('click', () => { doUndo(); });
+redoBtn.addEventListener('click', () => { doRedo(); });
 
 if (INTERACTIVE) {
   deckEl.addEventListener('click', drawCard);
@@ -280,4 +407,79 @@ if (INTERACTIVE) {
 }
 
 // initial
-resetDeck();
+applyTheme();
+if (!loadState()) {
+  resetDeck();
+}
+
+// Theme toggle
+themeBtn.addEventListener('click', () => Theme.toggle());
+
+// Editor
+function openEditor() {
+  editorPanel.classList.remove('hidden');
+  // เติมข้อมูลเป็น JSON โดยค่าเริ่มต้น
+  try { editorTextarea.value = JSON.stringify(QUESTIONS, null, 2); } catch {}
+}
+function closeEditor() { editorPanel.classList.add('hidden'); }
+editBtn.addEventListener('click', openEditor);
+closeEditorBtn.addEventListener('click', closeEditor);
+
+function parseCSV(text) {
+  return text
+    .split(/\r?\n/)
+    .map(s => s.trim())
+    .filter(Boolean);
+}
+
+function parseEditorText(value) {
+  // ลอง JSON ก่อน ถ้าไม่ใช่ ใช้ CSV แบบหนึ่งบรรทัดต่อคำถาม
+  try {
+    const arr = JSON.parse(value);
+    if (Array.isArray(arr) && arr.every(x => typeof x === 'string')) return arr;
+  } catch {}
+  return parseCSV(value);
+}
+
+loadFromTextBtn.addEventListener('click', () => {
+  const arr = parseEditorText(editorTextarea.value);
+  if (!arr || arr.length === 0) { alert('รูปแบบไม่ถูกต้องหรือว่างเปล่า'); return; }
+  // แทนที่ชุดคำถาม (ไม่แก้ไฟล์) และรีเซ็ตสำรับใหม่ตามชุดนี้
+  window.QUESTIONS = arr;
+  deck = shuffle([...arr]);
+  drawn = [];
+  undoStack.length = 0; redoStack.length = 0;
+  updateCounter(); buildDeckVisual(deck.length); renderHistory(); renderTableCurrent(); saveState();
+  alert('อัปเดตชุดคำถามและรีเซ็ตสำรับแล้ว');
+});
+
+exportJsonBtn.addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify(QUESTIONS, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'questions.json'; a.click();
+  URL.revokeObjectURL(url);
+});
+
+exportCsvBtn.addEventListener('click', () => {
+  const csv = QUESTIONS.map(q => '"' + q.replaceAll('"', '""') + '"').join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'questions.csv'; a.click();
+  URL.revokeObjectURL(url);
+});
+
+fileInput.addEventListener('change', async (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  const text = await file.text();
+  editorTextarea.value = text;
+});
+
+// Register Service Worker (PWA)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
