@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>สุ่มไพ่คำถาม (30 ข้อ)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <header class="header">
+        <h1>สุ่มไพ่คำถาม</h1>
+        <p class="subtitle">รวม 30 ข้อ • สุ่มใหม่ทุกครั้งที่หยิบออก</p>
+      </header>
+
+      <section class="board" aria-label="โต๊ะไพ่">
+        <div class="zone">
+          <div class="deck" id="deck" aria-label="สำรับไพ่" role="button" tabindex="0"></div>
+          <div class="deck-count" id="deckCount">30</div>
+        </div>
+        <div class="zone">
+          <div class="table" id="table" aria-live="polite" aria-label="พื้นที่วางไพ่"></div>
+        </div>
+        <div class="zone">
+          <div class="discard" id="discard" aria-label="กองทิ้ง (ไม่ใช้)"></div>
+        </div>
+      </section>
+
+      <section class="controls">
+        <button id="drawBtn" class="btn primary">หยิบไพ่คำถาม</button>
+        <button id="resetBtn" class="btn">รีเซ็ตสำรับ</button>
+        <div class="counter" id="counter">เหลือ 30/30</div>
+      </section>
+
+      <footer class="footer">
+        <small>หมายเหตุ: เมื่อหยิบไพ่แต่ละใบ ระบบจะสลับลำดับไพ่ที่เหลือโดยอัตโนมัติ • เคล็ดลับ: กด Space เพื่อหยิบไพ่</small>
+      </footer>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+  </html>

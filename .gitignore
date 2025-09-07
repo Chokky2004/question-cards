@@ -1,0 +1,16 @@
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# Logs / pids / temp
+*.log
+*.pid
+cloudflared*
+*.tgz
+
+# Node
+node_modules/
+dist/
+build/
+
