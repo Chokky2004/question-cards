@@ -1,5 +1,5 @@
 // สลับโหมด: ตั้งเป็น false เพื่อปิด interactive (ลาก/เอียง/พลิก)
-const INTERACTIVE = false;
+const INTERACTIVE = true;
 
 // Theme handling
 const Theme = {
