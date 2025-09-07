@@ -1,9 +1,9 @@
-const CACHE_NAME = 'question-cards-v3';
+const CACHE_NAME = 'question-cards-v4';
 const ASSETS = [
   './',
   './index.html',
-  './styles.css?v=3',
-  './script.js?v=3',
+  './styles.css?v=4',
+  './script.js?v=4',
   './manifest.json'
 ];
 
@@ -26,13 +26,32 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
+
+  const accept = req.headers.get('accept') || '';
+  const isHTML = req.mode === 'navigate' || accept.includes('text/html');
+
+  if (isHTML) {
+    // Network-first for HTML to avoid stale pages
+    event.respondWith(
+      fetch(req)
+        .then((res) => {
+          const copy = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put('./index.html', copy)).catch(() => {});
+          return res;
+        })
+        .catch(() => caches.match('./index.html'))
+    );
+    return;
+  }
+
+  // Cache-first for static assets
   event.respondWith(
-    caches.match(req).then((cached) => 
+    caches.match(req).then((cached) =>
       cached || fetch(req).then((res) => {
         const resClone = res.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(req, resClone)).catch(()=>{});
+        caches.open(CACHE_NAME).then((cache) => cache.put(req, resClone)).catch(() => {});
         return res;
-      }).catch(() => caches.match('./index.html'))
+      })
     )
   );
 });
